@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import * as WebVRui from 'webvr-ui';
 import VRControls from './controls/VRControls';
 import VREffect from './effects/VREffect';
-import Reticulum from './utils/reticulum';
+import Reticulum from './utils/Reticulum';
 
 export default class WebVRScene{
 	

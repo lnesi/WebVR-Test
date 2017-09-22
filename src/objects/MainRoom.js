@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import ColladaLoader from "../Loaders/ColladaLoader";
-import Reticulum from '../utils/reticulum';
+import Reticulum from '../utils/Reticulum';
+import ChromaVideoPlane from '../objects/ChromaVideoPlane';
 
 export default class MainRoom{
 	constructor(scene){
@@ -31,36 +32,60 @@ export default class MainRoom{
 	}
 
 	addObjects(){
-		var texture = new THREE.TextureLoader().load( "assets/london.jpg" );
-		var geometry = new THREE.PlaneGeometry( 8, 4.5, 1 );
-		var material = new THREE.MeshBasicMaterial( {map: texture, side: THREE.DoubleSide} );
-		var plane = new THREE.Mesh( geometry, material );
-		plane.position.z=-11
-		plane.position.y=5
-		this.scene.add( plane );
+		this.videoplaneTwoLogo=new ChromaVideoPlane('assets/logo.mp4', 1920, 1080, 0x00000);
+		this.videoplaneTwoLogo.object3D.scale.x=0.5;
+		this.videoplaneTwoLogo.object3D.scale.y=0.5;
+		this.videoplaneTwoLogo.object3D.position.z=-11.5;
+		this.videoplaneTwoLogo.object3D.position.y=3;
+		this.videoplaneTwoLogo.object3D.position.x=5;
+		this.scene.add( this.videoplaneTwoLogo.object3D );
 
-		Reticulum.add( plane, {
-			clickCancelFuse: true, // Overrides global setting for fuse's clickCancelFuse
+
+	
+
+		Reticulum.add( this.videoplaneTwoLogo.object3D, {
+			clickCancelFuse: false, // Overrides global setting for fuse's clickCancelFuse
 			reticleHoverColor: 0x00fff6, // Overrides global reticle hover color
 			fuseVisible: true, // Overrides global fuse visibility
 			fuseDuration: 1.5, // Overrides global fuse duration
 			fuseColor: 0xcc0000, // Overrides global fuse color
 			onGazeOver: function(){
+				console.log("onGazeOver")
 				// do something when user targets object
 				//this.material.emissive.setHex( 0xffcc00 );
 			},
 			onGazeOut: function(){
+				console.log("onGazeOut")
+				this.videoplaneTwoLogo.pause();
 				// do something when user moves reticle off targeted object
 				//this.material.emissive.setHex( 0xcc0000 );
-			},
+			}.bind(this),
 			onGazeLong: function(){
+				console.log("onGazeLong",this)
+				//console.log(plane.reticulumData)
+				this.videoplaneTwoLogo.play();
+				
 				// do something user targetes object for specific time
 				//this.material.emissive.setHex( 0x0000cc );
-			},
+			}.bind(this),
 			onGazeClick: function(){
+				console.log("onGazeClick")
 				// have the object react when user clicks / taps on targeted object
 				//this.material.emissive.setHex( 0x0000cc );
 			}
 		});
+
+		
+		
+	}
+
+	update(){
+		this.movieMaterial.update();
+		requestAnimationFrame(this.update.bind(this));
 	}
 }
+
+
+
+
+
