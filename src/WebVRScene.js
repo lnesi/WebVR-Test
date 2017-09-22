@@ -27,6 +27,8 @@ export default class WebVRScene{
 	}
 	
 	onResize(e){
+		document.getElementsByTagName("body").width=window.innerWidth;
+		document.getElementsByTagName("body").height=window.innerHeight;
 		this.vrEffect.setSize(window.innerWidth, window.innerHeight);
 		this.camera.aspect = window.innerWidth / window.innerHeight;
 		this.camera.updateProjectionMatrix();
@@ -37,7 +39,9 @@ export default class WebVRScene{
 		this.renderer = new THREE.WebGLRenderer({ antialiasing: true });
 		this.renderer.setClearColor(0x3399ff);
 		this.camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
-
+		this.audioListener = new THREE.AudioListener();
+		this.audioListener.name="AudioListener";
+		this.camera.add(this.audioListener);
 		this.vrControls = new VRControls(this.camera);
 	    this.vrControls.standing = true;
 	    this.camera.position.y = this.vrControls.userHeight;
@@ -93,15 +97,16 @@ export default class WebVRScene{
 		document.getElementById("vr-ui-button").append(this.enterVR.domElement);
 	}
 	createGazeInteractor(){
+		var restPoint=this.vrControls.userHeight;
 		Reticulum.init(this.camera, {
 			proximity: false,
 			clickevents: true,
-			near: 1, //near factor of the raycaster (shouldn't be negative and should be smaller than the far property)
+			near: 4, //near factor of the raycaster (shouldn't be negative and should be smaller than the far property)
 			far: 20, //far factor of the raycaster (shouldn't be negative and should be larger than the near property)
 	
 			reticle: {
 				visible: true,
-				restPoint: 10, //Defines the reticle's resting point when no object has been targeted
+				restPoint:restPoint, //Defines the reticle's resting point when no object has been targeted
 				color: 0xcc00cc,
 				innerRadius: 0.0004,
 				outerRadius: 0.003,

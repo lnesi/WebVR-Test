@@ -16,7 +16,7 @@ class ThreeVRDemo{
 		
 		this.webVR=new WebVRScene("wrapper");
 
-		this.room=new MainRoom(this.webVR.scene)
+		this.room=new MainRoom(this.webVR)
 		
 	
 

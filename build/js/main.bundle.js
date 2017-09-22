@@ -51166,7 +51166,7 @@ ColladaLoader.prototype = {
 
 };
 
-/* unused harmony default export */ var _unused_webpack_default_export = (ColladaLoader);
+/* harmony default export */ __webpack_exports__["a"] = (ColladaLoader);
 
 
 /***/ }),
@@ -51209,7 +51209,7 @@ class ThreeVRDemo{
 		
 		this.webVR=new __WEBPACK_IMPORTED_MODULE_2__WebVRScene__["a" /* default */]("wrapper");
 
-		this.room=new __WEBPACK_IMPORTED_MODULE_5__objects_MainRoom__["a" /* default */](this.webVR.scene)
+		this.room=new __WEBPACK_IMPORTED_MODULE_5__objects_MainRoom__["a" /* default */](this.webVR)
 		
 	
 
@@ -52637,6 +52637,8 @@ class WebVRScene{
 	}
 	
 	onResize(e){
+		document.getElementsByTagName("body").width=window.innerWidth;
+		document.getElementsByTagName("body").height=window.innerHeight;
 		this.vrEffect.setSize(window.innerWidth, window.innerHeight);
 		this.camera.aspect = window.innerWidth / window.innerHeight;
 		this.camera.updateProjectionMatrix();
@@ -52647,7 +52649,9 @@ class WebVRScene{
 		this.renderer = new __WEBPACK_IMPORTED_MODULE_0_three__["WebGLRenderer"]({ antialiasing: true });
 		this.renderer.setClearColor(0x3399ff);
 		this.camera = new __WEBPACK_IMPORTED_MODULE_0_three__["PerspectiveCamera"]( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
-
+		this.audioListener = new __WEBPACK_IMPORTED_MODULE_0_three__["AudioListener"]();
+		this.audioListener.name="AudioListener";
+		this.camera.add(this.audioListener);
 		this.vrControls = new __WEBPACK_IMPORTED_MODULE_2__controls_VRControls__["a" /* default */](this.camera);
 	    this.vrControls.standing = true;
 	    this.camera.position.y = this.vrControls.userHeight;
@@ -52703,15 +52707,16 @@ class WebVRScene{
 		document.getElementById("vr-ui-button").append(this.enterVR.domElement);
 	}
 	createGazeInteractor(){
+		var restPoint=this.vrControls.userHeight;
 		__WEBPACK_IMPORTED_MODULE_4__utils_Reticulum__["a" /* default */].init(this.camera, {
 			proximity: false,
 			clickevents: true,
-			near: 1, //near factor of the raycaster (shouldn't be negative and should be smaller than the far property)
+			near: 4, //near factor of the raycaster (shouldn't be negative and should be smaller than the far property)
 			far: 20, //far factor of the raycaster (shouldn't be negative and should be larger than the near property)
 	
 			reticle: {
 				visible: true,
-				restPoint: 10, //Defines the reticle's resting point when no object has been targeted
+				restPoint:restPoint, //Defines the reticle's resting point when no object has been targeted
 				color: 0xcc00cc,
 				innerRadius: 0.0004,
 				outerRadius: 0.003,
@@ -56604,8 +56609,9 @@ module.exports = {"_from":"webvr-polyfill@^0.9.38","_id":"webvr-polyfill@0.9.38"
 
 
 class MainRoom{
-	constructor(scene){
-		this.scene=scene;
+	constructor(webVR){
+		this.scene=webVR.scene;
+		this.webVR=webVR;
 		var loader=new __WEBPACK_IMPORTED_MODULE_0_three__["ObjectLoader"]();
 		
 		loader.load(
@@ -56613,7 +56619,9 @@ class MainRoom{
 			'assets/model.json',
 			// Function when resource is loaded
 			function ( object ,p1,p2) {
-			
+				
+				object.position.y=-this.webVR.vrControls.userHeight;
+				object.name="RoomScene";
 				this.scene.add(object);
 				this.addObjects();
 			}.bind(this),
@@ -56628,6 +56636,59 @@ class MainRoom{
 		);
 
 
+		this.sound = new __WEBPACK_IMPORTED_MODULE_0_three__["PositionalAudio"]( this.webVR.audioListener );
+		var audioLoader = new __WEBPACK_IMPORTED_MODULE_0_three__["AudioLoader"]();
+		this.sound.panner.panningModel='HRTF';
+		this.sound.panner.distanceModel='exponential';
+console.log("PAN",);
+		audioLoader.load( 'assets/piano.mp3', function( buffer ) {
+			this.sound.setBuffer( buffer );
+			this.sound.setLoop(true);
+			this.sound.setRefDistance( 20 );
+			
+		}.bind(this));
+		var panioloader = new __WEBPACK_IMPORTED_MODULE_1__Loaders_ColladaLoader__["a" /* default */]();
+
+		panioloader.load(
+			// resource URL
+			'assets/Piano.dae',
+			// Function when resource is loaded
+			 ( collada ) =>{
+			 	collada.scene.position.x=-8;
+			 	collada.scene.position.y=-this.webVR.vrControls.userHeight;
+			 	collada.scene.position.z=8;
+			 	collada.scene.rotation.z=2.23;
+			 	collada.scene.name="Piano";
+			 	collada.scene.scale.addScalar(1);
+			 	this.piano=collada.scene;
+				this.scene.add( collada.scene );
+
+				__WEBPACK_IMPORTED_MODULE_2__utils_Reticulum__["a" /* default */].add( collada.scene.children[0], {
+					clickCancelFuse: false, // Overrides global setting for fuse's clickCancelFuse
+					reticleHoverColor: 0x00fff6, // Overrides global reticle hover color
+					fuseVisible: true, // Overrides global fuse visibility
+					fuseDuration: 1.5, // Overrides global fuse duration
+					fuseColor: 0xcc0000, // Overrides global fuse color
+					onGazeLong: ()=>{
+						if(	this.sound.isPlaying){
+							this.sound.stop();
+						}else{
+							this.sound.play();
+						}
+					},
+					
+				});
+			},
+			// Function called when download progresses
+			function ( xhr ) {
+				console.log( (xhr.loaded / xhr.total * 100) + '% loaded' );
+			}
+		);
+
+		
+		
+
+
 
 	}
 
@@ -56636,14 +56697,14 @@ class MainRoom{
 		this.videoplaneTwoLogo.scale.x=0.5;
 		this.videoplaneTwoLogo.scale.y=0.5;
 		this.videoplaneTwoLogo.rotation.y=-Math.PI/2;
-		
+
 
 		this.videoplaneTwoLogo.position.y=3;
 		this.videoplaneTwoLogo.position.x=11;
 		this.scene.add( this.videoplaneTwoLogo );
 
 		this.videoPlaneScreen=new __WEBPACK_IMPORTED_MODULE_4__objects_VideoPlane__["a" /* default */]("assets/big_buck_bunny.mp4",8,4.5);
-		this.videoPlaneScreen.position.z=-10;
+		this.videoPlaneScreen.position.z=-11.5;
 		this.videoPlaneScreen.position.y=4;
 		this.scene.add(this.videoPlaneScreen);
 
@@ -57314,6 +57375,7 @@ var ChromaKeyMaterial = function (url, width, height, keyColor) {
 	this.video=video;
 	var videoImage = document.createElement('canvas');
 	if (window["URL"]) document.body.appendChild(videoImage);
+	videoImage.style.display="none";
 	videoImage.width = width;
 	videoImage.height = height;
 	

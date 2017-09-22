@@ -5,8 +5,9 @@ import ChromaVideoPlane from '../objects/ChromaVideoPlane';
 import VideoPlane from '../objects/VideoPlane';
 
 export default class MainRoom{
-	constructor(scene){
-		this.scene=scene;
+	constructor(webVR){
+		this.scene=webVR.scene;
+		this.webVR=webVR;
 		var loader=new THREE.ObjectLoader();
 		
 		loader.load(
@@ -14,7 +15,9 @@ export default class MainRoom{
 			'assets/model.json',
 			// Function when resource is loaded
 			function ( object ,p1,p2) {
-			
+				
+				object.position.y=-this.webVR.vrControls.userHeight;
+				object.name="RoomScene";
 				this.scene.add(object);
 				this.addObjects();
 			}.bind(this),
@@ -29,6 +32,59 @@ export default class MainRoom{
 		);
 
 
+		this.sound = new THREE.PositionalAudio( this.webVR.audioListener );
+		var audioLoader = new THREE.AudioLoader();
+		this.sound.panner.panningModel='HRTF';
+		this.sound.panner.distanceModel='exponential';
+console.log("PAN",);
+		audioLoader.load( 'assets/piano.mp3', function( buffer ) {
+			this.sound.setBuffer( buffer );
+			this.sound.setLoop(true);
+			this.sound.setRefDistance( 20 );
+			
+		}.bind(this));
+		var panioloader = new ColladaLoader();
+
+		panioloader.load(
+			// resource URL
+			'assets/Piano.dae',
+			// Function when resource is loaded
+			 ( collada ) =>{
+			 	collada.scene.position.x=-8;
+			 	collada.scene.position.y=-this.webVR.vrControls.userHeight;
+			 	collada.scene.position.z=8;
+			 	collada.scene.rotation.z=2.23;
+			 	collada.scene.name="Piano";
+			 	collada.scene.scale.addScalar(1);
+			 	this.piano=collada.scene;
+				this.scene.add( collada.scene );
+
+				Reticulum.add( collada.scene.children[0], {
+					clickCancelFuse: false, // Overrides global setting for fuse's clickCancelFuse
+					reticleHoverColor: 0x00fff6, // Overrides global reticle hover color
+					fuseVisible: true, // Overrides global fuse visibility
+					fuseDuration: 1.5, // Overrides global fuse duration
+					fuseColor: 0xcc0000, // Overrides global fuse color
+					onGazeLong: ()=>{
+						if(	this.sound.isPlaying){
+							this.sound.stop();
+						}else{
+							this.sound.play();
+						}
+					},
+					
+				});
+			},
+			// Function called when download progresses
+			function ( xhr ) {
+				console.log( (xhr.loaded / xhr.total * 100) + '% loaded' );
+			}
+		);
+
+		
+		
+
+
 
 	}
 
@@ -37,14 +93,14 @@ export default class MainRoom{
 		this.videoplaneTwoLogo.scale.x=0.5;
 		this.videoplaneTwoLogo.scale.y=0.5;
 		this.videoplaneTwoLogo.rotation.y=-Math.PI/2;
-		
+
 
 		this.videoplaneTwoLogo.position.y=3;
 		this.videoplaneTwoLogo.position.x=11;
 		this.scene.add( this.videoplaneTwoLogo );
 
 		this.videoPlaneScreen=new VideoPlane("assets/big_buck_bunny.mp4",8,4.5);
-		this.videoPlaneScreen.position.z=-10;
+		this.videoPlaneScreen.position.z=-11.5;
 		this.videoPlaneScreen.position.y=4;
 		this.scene.add(this.videoPlaneScreen);
 
