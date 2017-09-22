@@ -20,13 +20,14 @@ class ThreeVRDemo{
 		
 	
 
-		document.getElementById( 'vr-ui-button' ).addEventListener('click',function(e){
+		window.document.getElementById( 'vr-ui-button' ).addEventListener('click',(e)=>{
+			
 			//hack for user gesture play security
-			this.room.movieMaterial.video.play()
-			this.room.movieMaterial.video.pause()
-			document.getElementById( 'videoDemo' ).play();
-			document.getElementById( 'videoDemo' ).pause();
-		}.bind(this))
+			window.app.room.videoPlaneScreen.play();
+			window.app.room.videoPlaneScreen.pause();
+			window.app.room.videoplaneTwoLogo.play();
+			
+		});
 		
 	}
 

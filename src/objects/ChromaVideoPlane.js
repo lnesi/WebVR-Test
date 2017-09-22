@@ -1,17 +1,19 @@
 import * as THREE from 'three';
 import ChromaKeyMaterial from '../utils/ChromaKeyMaterial';
 
-export default class ChromaVideoPlane{
-	constructor(videoURL, videoWidth, videoHeight, chromaKeyColor,scale=100){
-		this.movieMaterial = new ChromaKeyMaterial(videoURL, videoWidth, videoHeight, chromaKeyColor);
-		this.geometry = new THREE.PlaneGeometry(videoWidth/scale, videoHeight/scale, 1, 1);
-		this.object3D = new THREE.Mesh(this.geometry ,this.movieMaterial );
+export default class ChromaVideoPlane extends THREE.Mesh{
+	constructor(videoURL, videoWidth, videoHeight, chromaKeyColor,scale=100,name="ChromaVideoPlane"){
+		var movieMaterial = new ChromaKeyMaterial(videoURL, videoWidth, videoHeight, chromaKeyColor);
+		var geometry = new THREE.PlaneGeometry(videoWidth/scale, videoHeight/scale, 1, 1);
+		super(geometry,movieMaterial);
+		this.movieMaterial=movieMaterial;
+		this.name=name;
 		this.update();
 	}	
 	play(){
 		this.movieMaterial.video.play();
 	}
-	
+
 	pause(){
 		this.movieMaterial.video.pause();
 	}
